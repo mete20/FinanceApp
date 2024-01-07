@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 class StockBase(BaseModel):
-    name: str
+    symbol: str
     current_price: float
 
 class StockCreate(StockBase):
