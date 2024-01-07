@@ -22,7 +22,7 @@ def upgrade() -> None:
     op.create_table('users',
         sa.Column('userID', sa.Integer, primary_key=True, index=True),
         sa.Column('name', sa.String(length=255)),
-        sa.Column('email', sa.String(length=255)),
+        sa.Column('mail', sa.String(length=255)),
         sa.Column('password', sa.String(length=255)),
         sa.Column('accountID', sa.Integer)
     )
@@ -61,11 +61,11 @@ def upgrade() -> None:
         sa.Column('stockID', sa.Integer)
     )
     # update the stock table to include the symbol column
-    op.add_column('stocks', sa.Column('symbol', sa.String(length=255), nullable=True))
+    #op.add_column('stocks', sa.Column('symbol', sa.String(length=255), nullable=True))
     pass
 
 
 def downgrade() -> None:
     # downgrade the stock table to remove the name column
-    op.drop_column('stocks', 'name')
+    #op.drop_column('stocks', 'name')
     pass
