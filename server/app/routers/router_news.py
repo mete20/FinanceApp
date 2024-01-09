@@ -17,7 +17,7 @@ def read_news(skip: int = 0, limit: int = 200, db: Session = Depends(get_db)):
     news = crud_news.get_news(db, skip=skip, limit=limit)
     return news
 
-@router.get("/{stock_id}", response_model=schema_news.News)
+@router.get("/{stock_id}", response_model=List[schema_news.News])
 def read_user_news(stock_id: int, db: Session = Depends(get_db)):
     news = crud_news.get_news_by_stock_id(db, stock_id=stock_id)
     return news

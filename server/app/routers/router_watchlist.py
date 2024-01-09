@@ -17,3 +17,8 @@ def read_watchlist(user_id: int, db: Session = Depends(get_db)):
     watchlist = crud_watchlist.get_watchlist(db, user_id=user_id)
     return watchlist
 
+@router.post("/", response_model=schema_watchlist.Watchlist)
+def create_watchlist(watchlist_data: schema_watchlist.WatchlistCreate, db: Session = Depends(get_db)):
+    # Creating a new entry
+    new_watchlist_entry = crud_watchlist.add_watchlist(db, watchlist_data=watchlist_data)
+    return new_watchlist_entry

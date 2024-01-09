@@ -12,11 +12,17 @@ router = APIRouter(
 )
 
 
-@router.get("/{user_id}", response_model=List[schema_account.Account])
+@router.get("/{user_id}", response_model=schema_account.Account)
 def read_accounts(user_id: int, db: Session = Depends(get_db)):
-    accounts = crud_account.get_accounts(db, user_id=user_id)
+    accounts = crud_account.get_account(db, user_id=user_id)
     return accounts
 
+## TODO: Add a function to create a new account
+@router.post("/", response_model=schema_account.Account)
+def create_account(account_data: schema_account.AccountCreate, db: Session = Depends(get_db)):
+    # Creating a new entry
+    new_account_entry = crud_account.create_account(db, account_data=account_data)
+    return new_account_entry
 
 @router.put("/{user_id}/add-money", response_model=schema_account.Account)
 def add_money_to_balance(user_id: int, amount: float, db: Session = Depends(get_db)):
