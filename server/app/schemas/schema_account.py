@@ -4,8 +4,7 @@ class AccountBase(BaseModel):
     userID: int
     balance: float
     balance_USD: float
-    
-
+   
 class AccountCreate(AccountBase):
     pass
 

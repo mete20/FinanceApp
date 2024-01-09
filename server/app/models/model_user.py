@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 class User(Base):
@@ -8,7 +9,13 @@ class User(Base):
     name = Column(String(255))
     mail = Column(String(255))
     password = Column(String(255))
-    accountID = Column(Integer) # accountID foreign key for account table
+    
+    #relationships
+    account = relationship("Account", back_populates="user")
+    portfolio_user = relationship("Portfolio", back_populates="user")
+    watchlist_user = relationship("Watchlist", back_populates="user")
+    transaction_user = relationship("Transaction", back_populates="user")
+    
 
 
 

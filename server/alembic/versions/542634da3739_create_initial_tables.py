@@ -24,30 +24,30 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=255)),
         sa.Column('mail', sa.String(length=255)),
         sa.Column('password', sa.String(length=255)),
-        sa.Column('accountID', sa.Integer)
     )
     op.create_table('accounts',
         sa.Column('accountID', sa.Integer, primary_key=True, index=True),
+        sa.Column('userID', sa.Integer, sa.ForeignKey('users.userID')),
         sa.Column('balance', sa.Float),
         sa.Column('balance_USD', sa.Float),
         sa.Column('current_stock_value', sa.Float)
     )
     op.create_table('watchlist',
         sa.Column('watchlistID', sa.Integer, primary_key=True, index=True),
-        sa.Column('userID', sa.Integer),
-        sa.Column('stockID', sa.Integer)
+        sa.Column('userID', sa.Integer, sa.ForeignKey('users.userID')),
+        sa.Column('stockID', sa.Integer, sa.ForeignKey('stocks.id'))
     )
     op.create_table('portfolio',
         sa.Column('portfolioID', sa.Integer, primary_key=True, index=True),
-        sa.Column('userID', sa.Integer),
-        sa.Column('stockID', sa.Integer),
+        sa.Column('userID', sa.Integer, sa.ForeignKey('users.userID')),
+        sa.Column('stockID', sa.Integer, sa.ForeignKey('stocks.id')),
         sa.Column('quantity', sa.Integer),
         sa.Column('averagePrice', sa.Float)
     )
     op.create_table('transactions',
         sa.Column('transactionID', sa.Integer, primary_key=True, index=True),
-        sa.Column('userID', sa.Integer),
-        sa.Column('stockID', sa.Integer),
+        sa.Column('userID', sa.Integer, sa.ForeignKey('users.userID')),
+        sa.Column('stockID', sa.Integer, sa.ForeignKey('stocks.id')),
         sa.Column('quantity', sa.Integer),
         sa.Column('price', sa.Integer),
         sa.Column('timeStamp', sa.String(length=255)),
@@ -58,14 +58,12 @@ def upgrade() -> None:
         sa.Column('title', sa.String(length=255)),
         sa.Column('content', sa.String(length=255)),
         sa.Column('date', sa.String(length=255)),
-        sa.Column('stockID', sa.Integer)
+        sa.Column('stockID', sa.Integer, sa.ForeignKey('stocks.id'))
     )
-    # update the stock table to include the symbol column
-    #op.add_column('stocks', sa.Column('symbol', sa.String(length=255), nullable=True))
+    
     pass
 
 
 def downgrade() -> None:
     # downgrade the stock table to remove the name column
-    #op.drop_column('stocks', 'name')
     pass
