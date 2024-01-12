@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models import model_portfolio, model_account, model_stock
 from app.schemas import schema_portfolio
+from sqlalchemy import func
 
 
 
@@ -67,4 +68,10 @@ def get_stock_price(db: Session, portfolio_data):
         return stock.current_price
     else:
         return 0
+    
+def get_total_portfolio_value(db: Session, user_id: int) -> float:
+    total_value = db.query(func.sum(model_portfolio.Portfolio.quantity * model_stock.Stock.current_price)). \
+        join(model_stock.Stock, model_portfolio.Portfolio.stockID == model_stock.Stock.id). \
+        filter(model_portfolio.Portfolio.userID == user_id).scalar()
+    return total_value or 0.0  # Return 0.0 if no portfolio data found
 
