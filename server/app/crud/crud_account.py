@@ -85,7 +85,37 @@ def add_money_to_balance_usd(db: Session, user_id: int, amount_usd: float):
     # Committing changes to database
     db.commit()
 
-    return account         
+    return account    
+def get_account_statistics(db: Session, user_id: int):
+
+
+    # Subquery to calculate total and average amounts of transactions per account
+    transaction_stats = (
+        db.query(
+            model_transaction.Transaction.accountID,
+            func.count(model_transaction.Transaction.transactionID).label("total_transactions"),
+            func.avg(model_transaction.Transaction.amount).label("average_transaction_amount")
+        )
+        .group_by(model_transaction.Transaction.accountID)
+        .subquery()
+    )
+
+    # Main query to fetch account details along with transaction statistics
+    account_stats = (
+        db.query(
+            model_account.Account,
+            transaction_stats.c.total_transactions,
+            transaction_stats.c.average_transaction_amount
+        )
+        .outerjoin(
+            transaction_stats, model_account.Account.accountID == transaction_stats.c.accountID
+        )
+        .filter(model_account.Account.userID == user_id)
+        .first()
+    )
+
+    return account_stats
+
              
 
              
