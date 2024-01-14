@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from app.models import model_stock, StockPriceHistory
+from app.models import model_stock, model_stock_price_history
 from sqlalchemy import desc, func
-from app.schemas import schema_stock
+from app.schemas import schema_stock, schema_stock_price_history
 from datetime import datetime, timedelta
 
 def get_stocks(db: Session, skip: int = 0, limit: int = 200):
