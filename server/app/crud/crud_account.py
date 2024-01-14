@@ -8,7 +8,7 @@ def get_account(db: Session, user_id: int):
              .filter(model_account.Account.userID == user_id)\
              .first() 
 
-## TODO: Add a function to create a new account
+
 def create_account(db: Session, account_data: schema_account.AccountCreate):
     # Creating a new entry
     new_account_entry = model_account.Account(**account_data.dict())
