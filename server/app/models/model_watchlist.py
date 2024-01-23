@@ -13,5 +13,7 @@ class Watchlist(Base):
     stock = relationship("Stock", back_populates="watchlist_stock")
     user = relationship("User", back_populates="watchlist_user")
 
+    
+
 
 
