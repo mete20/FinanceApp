@@ -9,7 +9,7 @@ class NewsBase(BaseModel):
 class NewsCreate(NewsBase):
     pass
 
-class News(BaseModel):
+class News(NewsBase):
     newsID: int
     class Config:
         orm_mode = True

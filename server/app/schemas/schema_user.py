@@ -8,9 +8,9 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     pass
 
-class User(BaseModel):
+class User(UserBase):
     userID: int
-    
-
     class Config:
         orm_mode = True
+
+

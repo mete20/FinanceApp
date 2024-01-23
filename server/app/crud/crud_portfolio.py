@@ -84,18 +84,6 @@ def get_cash_vs_invested(db: Session, user_id: int):
     cash_balance = get_balance(db, user_id)
     return {'invested': invested_amount, 'cash_balance': cash_balance}
 
-def get_portfolio_value_over_time(db: Session, user_id: int):
-    """
-    Get the historical value of the user's portfolio over time.
-    """
-    return db.query(
-        model_stock.Stock.date, 
-        (func.sum(model_portfolio.Portfolio.quantity * model_stock.Stock.historical_price)).label('historical_value')
-    ).join(model_stock.Stock, model_portfolio.Portfolio.stockID == model_stock.Stock.id)\
-     .filter(model_portfolio.Portfolio.userID == user_id)\
-     .group_by(model_stock.Stock.date)\
-     .order_by(model_stock.Stock.date).all()
-
 def sell_stock(db: Session, portfolio_data):
     # Get the user ID, stock ID, and quantity from portfolio_data
     user_id = portfolio_data.userID

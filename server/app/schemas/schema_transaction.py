@@ -11,7 +11,7 @@ class TransactionBase(BaseModel):
 class TransactionCreate(TransactionBase):
     pass
 
-class Transaction(BaseModel):
+class Transaction(TransactionBase):
     transactionID: int
     class Config:
         orm_mode = True
