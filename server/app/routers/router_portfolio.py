@@ -22,7 +22,10 @@ def read_user_portfolio(user_id: int, db: Session = Depends(get_db)):
 @router.post("/", response_model=schema_portfolio.Portfolio)
 def buy_stock(portfolio_data: schema_portfolio.PortfolioCreate, db: Session = Depends(get_db)):
     new_portfolio_entry = crud_portfolio.create_portfolio(db, portfolio_data=portfolio_data)
-    return new_portfolio_entry
+    if new_portfolio_entry:
+        return new_portfolio_entry
+    else:
+        raise HTTPException(status_code=400, detail="Not enough money to buy stock")
 
 
 @router.get("/total_value/{user_id}", response_model=float)

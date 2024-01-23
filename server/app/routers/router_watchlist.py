@@ -20,4 +20,9 @@ def read_watchlist(user_id: int, db: Session = Depends(get_db)):
 def create_watchlist(watchlist_data: schema_watchlist.WatchlistCreate, db: Session = Depends(get_db)):
     # Creating a new entry
     new_watchlist_entry = crud_watchlist.add_watchlist(db, watchlist_data=watchlist_data)
-    return new_watchlist_entry
+    if new_watchlist_entry:
+        return new_watchlist_entry
+    else:
+        raise HTTPException(status_code=400, detail="Stock already in watchlist")
+
+

@@ -12,7 +12,6 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-
 @router.get("/", response_model=List[schema_stock.Stock])
 def read_stocks(skip: int = 0, limit: int = 200, db: Session = Depends(get_db)):
     stocks = crud_stock.get_stocks(db, skip=skip, limit=limit)
@@ -21,16 +20,6 @@ def read_stocks(skip: int = 0, limit: int = 200, db: Session = Depends(get_db)):
 @router.post("/", response_model=schema_stock.Stock)
 def create_stock(stock: schema_stock.StockCreate, db: Session = Depends(get_db)):
     return crud_stock.create_stock(db, stock)
-
-
-@router.get("/transaction-total/")
-def total_transaction_value_by_stock(db: Session = Depends(get_db)):
-    return crud_stock.get_total_transaction_value_by_stock(db)
-
-
-@router.get("/watchlist/average-price/")
-def average_price_of_watchlisted_stocks(user_id: int, db: Session = Depends(get_db)):
-    return crud_stock.get_average_price_of_watchlisted_stocks(db, user_id)
 
 @router.get("/highest-price/")
 def stocks_with_highest_price(limit: int = 10, db: Session = Depends(get_db)):
