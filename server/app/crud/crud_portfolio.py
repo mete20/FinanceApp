@@ -5,6 +5,7 @@ from sqlalchemy import func
 from app.models import model_portfolio
 from app.models import model_portfolio, model_stock
 from app.crud import crud_transaction
+from app.models import model_stock
 
 
 
@@ -176,4 +177,95 @@ def sell_stock(db: Session, portfolio_data):
             return False  # User doesn't have enough quantity to sell
     else:
         return False  # User doesn't own the stock
+
+def buy_stock_by_symbol(db: Session, user_id: int, stock_symbol: str, quantity: int):
+    # Get the stock ID based on the symbol
+    stock = db.query(model_stock.Stock).filter(
+        model_stock.Stock.symbol == stock_symbol
+    ).first()
+    
+    if stock:
+        # Check if the user has enough money to buy the stock
+        if user_has_enough_money(db, user_id, stock.price * quantity):
+            # Create a new portfolio entry for the user
+            portfolio_data = schema_portfolio.PortfolioCreate(
+                userID=user_id,
+                stockID=stock.id,
+                quantity=quantity
+            )
+            create_portfolio(db, portfolio_data)
+            
+            # Update the user's account balance
+            account = db.query(model_account.Account).filter(
+                model_account.Account.userID == user_id
+            ).first()
+            
+            if account:
+                account.balance -= stock.price * quantity
+            
+            db.commit()
+            
+            transaction_data = schema_transaction.TransactionBase(
+                userID=user_id,
+                stockID=stock.id,
+                quantity=quantity,
+                price=stock.price,
+                timeStamp="",
+                type="buy"
+            )
+            crud_transaction.create_transaction(db, transaction_data)
+            
+            return True
+        else:
+            return False  # User doesn't have enough money
+    else:
+        return False  # Stock symbol not found
+    
+def sell_stock_by_symbol(db: Session, user_id: int, stock_symbol: str, quantity: int):
+    # Get the stock ID based on the symbol
+    stock = db.query(model_stock.Stock).filter(
+        model_stock.Stock.symbol == stock_symbol
+    ).first()
+    
+    if stock:
+        # Check if the user owns the stock
+        portfolio = db.query(model_portfolio.Portfolio).filter(
+            model_portfolio.Portfolio.userID == user_id,
+            model_portfolio.Portfolio.stockID == stock.id
+        ).first()
+        
+        if portfolio:
+            # Check if the user has enough quantity to sell
+            if portfolio.quantity >= quantity:
+                # Update the portfolio quantity
+                portfolio.quantity -= quantity
+                
+                # Update the user's account balance
+                account = db.query(model_account.Account).filter(
+                    model_account.Account.userID == user_id
+                ).first()
+                
+                if account:
+                    account.balance += stock.price * quantity
+                
+                db.commit()
+                
+                transaction_data = schema_transaction.TransactionBase(
+                    userID=user_id,
+                    stockID=stock.id,
+                    quantity=quantity,
+                    price=stock.price,
+                    timeStamp="",
+                    type="sell"
+                )
+                crud_transaction.create_transaction(db, transaction_data)
+                
+                return True
+            else:
+                return False  # User doesn't have enough quantity to sell
+        else:
+            return False  # User doesn't own the stock
+    else:
+        return False  # Stock symbol not found
+
 

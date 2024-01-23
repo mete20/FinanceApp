@@ -29,4 +29,15 @@ def stocks_with_highest_price(limit: int = 10, db: Session = Depends(get_db)):
 def stocks_with_lowest_price(limit: int = 10, db: Session = Depends(get_db)):
     return crud_stock.get_stocks_with_lowest_price(db, limit)
 
+@router.get("/{symbol}", response_model=schema_stock.Stock)
+def get_stock_by_symbol(symbol: str, db: Session = Depends(get_db)):
+    return crud_stock.get_stock_by_symbol(db, symbol)
+
+@router.get("/price-range/{min_price}/{max_price}", response_model=List[schema_stock.Stock])
+def get_stocks_by_price_range(min_price: float, max_price: float, db: Session = Depends(get_db)):
+    return crud_stock.get_stocks_by_price_range(db, min_price, max_price)
+
+@router.get("/search/{prefix}", response_model=List[schema_stock.Stock])
+def search_stocks_by_symbol_prefix(prefix: str, db: Session = Depends(get_db)):
+    return crud_stock.search_stocks_by_symbol_prefix(db, prefix)
 
