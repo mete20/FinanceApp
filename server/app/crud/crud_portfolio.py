@@ -29,7 +29,8 @@ def user_has_enough_money(db: Session, portfolio_data):
     # return True if user has enough money, False otherwise
     balance = get_balance(db, portfolio_data)
     stock_price = get_stock_price(db, portfolio_data)
-    if balance >= stock_price:
+    quantity = portfolio_data.quantity
+    if balance >= stock_price* quantity:
         return True
     else:
         return False
@@ -186,13 +187,15 @@ def buy_stock_by_symbol(db: Session, user_id: int, stock_symbol: str, quantity: 
     
     if stock:
         # Check if the user has enough money to buy the stock
-        if user_has_enough_money(db, user_id, stock.price * quantity):
-            # Create a new portfolio entry for the user
-            portfolio_data = schema_portfolio.PortfolioCreate(
-                userID=user_id,
-                stockID=stock.id,
-                quantity=quantity
-            )
+        # Create a new portfolio entry for the user
+        portfolio_data = schema_portfolio.PortfolioCreate(
+            userID=user_id,
+            stockID=stock.id,
+            quantity=quantity,
+            averagePrice=stock.current_price
+        )
+        if user_has_enough_money(db,portfolio_data):
+
             create_portfolio(db, portfolio_data)
             
             # Update the user's account balance
@@ -201,7 +204,7 @@ def buy_stock_by_symbol(db: Session, user_id: int, stock_symbol: str, quantity: 
             ).first()
             
             if account:
-                account.balance -= stock.price * quantity
+                account.balance -= stock.current_price * quantity
             
             db.commit()
             
@@ -209,7 +212,7 @@ def buy_stock_by_symbol(db: Session, user_id: int, stock_symbol: str, quantity: 
                 userID=user_id,
                 stockID=stock.id,
                 quantity=quantity,
-                price=stock.price,
+                price=stock.current_price,
                 timeStamp="",
                 type="buy"
             )
@@ -246,7 +249,7 @@ def sell_stock_by_symbol(db: Session, user_id: int, stock_symbol: str, quantity:
                 ).first()
                 
                 if account:
-                    account.balance += stock.price * quantity
+                    account.balance += stock.current_price * quantity
                 
                 db.commit()
                 
@@ -254,7 +257,7 @@ def sell_stock_by_symbol(db: Session, user_id: int, stock_symbol: str, quantity:
                     userID=user_id,
                     stockID=stock.id,
                     quantity=quantity,
-                    price=stock.price,
+                    price=stock.current_price,
                     timeStamp="",
                     type="sell"
                 )
