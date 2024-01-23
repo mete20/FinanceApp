@@ -7,7 +7,7 @@ class WatchlistBase(BaseModel):
 class WatchlistCreate(WatchlistBase):
     pass
 
-class Watchlist(BaseModel):
+class Watchlist(WatchlistBase):
     watchlistID: int
     class Config:
         orm_mode = True

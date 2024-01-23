@@ -9,7 +9,7 @@ class PortfolioBase(BaseModel):
 class PortfolioCreate(PortfolioBase):
     pass
 
-class Portfolio(BaseModel):
+class Portfolio(PortfolioBase):
     portfolioID: int
     class Config:
         orm_mode = True

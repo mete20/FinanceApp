@@ -19,10 +19,13 @@ def read_user_portfolio(user_id: int, db: Session = Depends(get_db)):
     return portfolio
 
 
-@router.post("/", response_model=List[schema_portfolio.Portfolio])
+@router.post("/", response_model=schema_portfolio.Portfolio)
 def buy_stock(portfolio_data: schema_portfolio.PortfolioCreate, db: Session = Depends(get_db)):
     new_portfolio_entry = crud_portfolio.create_portfolio(db, portfolio_data=portfolio_data)
-    return new_portfolio_entry
+    if new_portfolio_entry:
+        return new_portfolio_entry
+    else:
+        raise HTTPException(status_code=400, detail="Not enough money to buy stock")
 
 
 @router.get("/total_value/{user_id}", response_model=float)
@@ -38,6 +41,3 @@ def sell_stock_endpoint(portfolio_data: schema_portfolio.PortfolioCreate, db: Se
 def get_cash_vs_invested_value(user_id: int, db: Session = Depends(get_db)):
     return crud_portfolio.get_cash_vs_invested(db, user_id=user_id)
 
-@router.get("/value_over_time/{user_id}", response_model=List)
-def get_portfolio_value_over_time(user_id: int, db: Session = Depends(get_db)):
-    return crud_portfolio.get_portfolio_value_over_time(db, user_id=user_id)

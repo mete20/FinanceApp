@@ -1,9 +1,10 @@
 from sqlalchemy.orm import Session
 from app.models import model_portfolio, model_account, model_stock
-from app.schemas import schema_portfolio
+from app.schemas import schema_portfolio, schema_transaction
 from sqlalchemy import func
 from app.models import model_portfolio
 from app.models import model_portfolio, model_stock
+from app.crud import crud_transaction
 
 
 
@@ -19,7 +20,7 @@ def create_portfolio(db: Session, portfolio_data: schema_portfolio.PortfolioCrea
         # buy the stock
         return buy_stock(db, portfolio_data) 
     else:
-        return "Error: Not enough money to buy the stock."
+        return None
 
 
 def user_has_enough_money(db: Session, portfolio_data):
@@ -44,17 +45,64 @@ def buy_stock(db: Session, portfolio_data):
         account.balance -= quantity * get_stock_price(db, portfolio_data)
         db.commit()
 
+    if isStockInPortfolio(db, portfolio_data):
+        # Update the portfolio table
+        portfolio = db.query(model_portfolio.Portfolio).filter(
+            model_portfolio.Portfolio.userID == user_id,
+            model_portfolio.Portfolio.stockID == portfolio_data.stockID
+        ).first()
+        portfolio.quantity += quantity
+        db.commit()
+        db.refresh(portfolio)
+        transaction_data = create_transaction_Sell(db, portfolio_data, user_id)
+        crud_transaction.create_transaction(db, transaction_data)
+        return portfolio
+    
     # Add new entry to portfolio table
     new_portfolio_entry = model_portfolio.Portfolio(**portfolio_data.dict())
     db.add(new_portfolio_entry)
     db.commit()
     db.refresh(new_portfolio_entry)
+    transaction_data = create_transaction_Sell(db, portfolio_data, user_id)
+    crud_transaction.create_transaction(db, transaction_data)
+
     return new_portfolio_entry
+
+def create_transaction_Sell(db, portfolio_data, user_id):
+    transaction_data = schema_transaction.TransactionBase(
+        userID=user_id,
+        stockID=portfolio_data.stockID,
+        quantity=portfolio_data.quantity,
+        price=get_stock_price(db, portfolio_data),
+        timeStamp="",
+        type="buy"
+    )
+    
+    return transaction_data
+
+def isStockInPortfolio(db: Session, portfolio_data):
+    user_id = portfolio_data.userID
+    stock_id = portfolio_data.stockID
+    portfolio = db.query(model_portfolio.Portfolio).filter(
+        model_portfolio.Portfolio.userID == user_id,
+        model_portfolio.Portfolio.stockID == stock_id
+    ).first()
+    if portfolio:
+        return True
+    else:
+        return False
              
 def get_balance(db: Session, portfolio_data):
     # implementation to get balance
     # I have userId from portfolio_data, I need to get balance from account table
     user_id = portfolio_data.userID
+    account = db.query(model_account.Account).filter(model_account.Account.userID == user_id).first()
+    if account:
+        return account.balance
+    else:
+        return 0
+    
+def get_user_balance(db: Session, user_id: int):
     account = db.query(model_account.Account).filter(model_account.Account.userID == user_id).first()
     if account:
         return account.balance
@@ -81,20 +129,8 @@ def get_cash_vs_invested(db: Session, user_id: int):
     Compare the uninvested cash in the account with the invested amount.
     """
     invested_amount = get_total_portfolio_value(db, user_id)
-    cash_balance = get_balance(db, user_id)
+    cash_balance = get_user_balance(db, user_id)
     return {'invested': invested_amount, 'cash_balance': cash_balance}
-
-def get_portfolio_value_over_time(db: Session, user_id: int):
-    """
-    Get the historical value of the user's portfolio over time.
-    """
-    return db.query(
-        model_stock.Stock.date, 
-        (func.sum(model_portfolio.Portfolio.quantity * model_stock.Stock.historical_price)).label('historical_value')
-    ).join(model_stock.Stock, model_portfolio.Portfolio.stockID == model_stock.Stock.id)\
-     .filter(model_portfolio.Portfolio.userID == user_id)\
-     .group_by(model_stock.Stock.date)\
-     .order_by(model_stock.Stock.date).all()
 
 def sell_stock(db: Session, portfolio_data):
     # Get the user ID, stock ID, and quantity from portfolio_data
@@ -123,12 +159,18 @@ def sell_stock(db: Session, portfolio_data):
             
             if account:
                 account.balance += sale_amount
-            else:
-                # Create a new account for the user if it doesn't exist
-                account = model_account.Account(userID=user_id, balance=sale_amount)
-                db.add(account)
             
             db.commit()
+
+            transaction_data = schema_transaction.TransactionBase(
+                userID=user_id,
+                stockID=portfolio_data.stockID,
+                quantity=portfolio_data.quantity,
+                price=get_stock_price(db, portfolio_data),
+                timeStamp="",
+                type="sell"
+            )
+            crud_transaction.create_transaction(db, transaction_data)
             return True
         else:
             return False  # User doesn't have enough quantity to sell

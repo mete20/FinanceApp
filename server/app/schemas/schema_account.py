@@ -8,7 +8,7 @@ class AccountBase(BaseModel):
 class AccountCreate(AccountBase):
     pass
 
-class Account(BaseModel):
+class Account(AccountBase):
     accountID: int
     class Config:
         orm_mode = True

@@ -17,6 +17,8 @@ def read_users(skip: int = 0, limit: int = 200, db: Session = Depends(get_db)):
     users = crud_user.get_users(db, skip=skip, limit=limit)
     return users
 
+
+
 @router.post("/", response_model=schema_user.User)
 def create_user(user: schema_user.UserCreate, db: Session = Depends(get_db)):
     return crud_user.create_user(db, user) 
