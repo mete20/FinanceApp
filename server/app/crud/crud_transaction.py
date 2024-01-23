@@ -13,8 +13,15 @@ def create_transaction(db: Session, transaction: schema_transaction.TransactionC
     db.commit()
     db.refresh(db_transaction)
     return db_transaction
-             
-             
 
-                    
+def get_buy_transaction_history(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    return db.query(model_transaction.Transaction)\
+             .filter(model_transaction.Transaction.userID == user_id)\
+             .filter(model_transaction.Transaction.transactionType == "buy")\
+             .offset(skip).limit(limit).all()
 
+def get_sell_transaction_history(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    return db.query(model_transaction.Transaction)\
+             .filter(model_transaction.Transaction.userID == user_id)\
+             .filter(model_transaction.Transaction.transactionType == "sell")\
+             .offset(skip).limit(limit).all()

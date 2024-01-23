@@ -28,3 +28,17 @@ def get_stocks_with_highest_price(db: Session, limit: int = 10):
 
 def get_stocks_with_lowest_price(db: Session, limit: int = 10):
     return db.query(model_stock.Stock).order_by(model_stock.Stock.current_price.asc()).limit(limit).all()
+
+def get_stock_by_symbol(db: Session, symbol: str):
+        return db.query(model_stock.Stock).filter(model_stock.Stock.symbol == symbol).first()
+
+def get_stocks_by_price_range(db: Session, min_price: float, max_price: float):
+        return db.query(model_stock.Stock).filter(model_stock.Stock.current_price.between(min_price, max_price)).all()
+
+def search_stocks_by_symbol_prefix(db: Session, prefix: str):
+        return db.query(model_stock.Stock).filter(model_stock.Stock.symbol.like(f'{prefix}%')).all()
+
+
+
+
+

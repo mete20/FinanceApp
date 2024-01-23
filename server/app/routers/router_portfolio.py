@@ -5,6 +5,7 @@ from app.schemas import schema_portfolio
 from app.db.database import get_db
 from typing import List
 from sqlalchemy import func
+from app.crud.crud_portfolio import buy_stock_by_symbol, sell_stock_by_symbol
 
 router = APIRouter(
     prefix="/portfolios",
@@ -41,3 +42,19 @@ def sell_stock_endpoint(portfolio_data: schema_portfolio.PortfolioCreate, db: Se
 def get_cash_vs_invested_value(user_id: int, db: Session = Depends(get_db)):
     return crud_portfolio.get_cash_vs_invested(db, user_id=user_id)
 
+
+@router.post("/buy_stock_by_symbol/")
+def buy_stock_by_symbol_endpoint(user_id: int, stock_symbol: str, quantity: int, db: Session = Depends(get_db)):
+    success = buy_stock_by_symbol(db, user_id, stock_symbol, quantity)
+    if success:
+        return {"message": "Stock purchased successfully"}
+    else:
+        raise HTTPException(status_code=400, detail="Could not purchase stock")
+
+@router.post("/sell_stock_by_symbol/")
+def sell_stock_by_symbol_endpoint(user_id: int, stock_symbol: str, quantity: int, db: Session = Depends(get_db)):
+    success = sell_stock_by_symbol(db, user_id, stock_symbol, quantity)
+    if success:
+        return {"message": "Stock sold successfully"}
+    else:
+        raise HTTPException(status_code=400, detail="Could not sell stock")
