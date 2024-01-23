@@ -29,4 +29,9 @@ def stocks_with_highest_price(limit: int = 10, db: Session = Depends(get_db)):
 def stocks_with_lowest_price(limit: int = 10, db: Session = Depends(get_db)):
     return crud_stock.get_stocks_with_lowest_price(db, limit)
 
+@router.get("/update-all-stocks/", response_model= str)
+def update_all_stocks(db: Session = Depends(get_db)):
+    crud_stock.updateAllStocks(db)
+    return "Stocks updated successfully"
+
 
