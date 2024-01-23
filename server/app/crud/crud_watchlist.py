@@ -43,12 +43,25 @@ def isStockInWatchlist(db: Session, watchlist_data: schema_watchlist.WatchlistCr
     return watchlist
 
 def remove_stock_from_watchlist(db: Session, user_id: int, stock_id: int):
-    """
-    Remove a stock from a user's watchlist.
-    """
+
     watchlist = db.query(model_watchlist.Watchlist)\
       .filter(model_watchlist.Watchlist.userID == user_id,
               model_watchlist.Watchlist.stockID == stock_id)\
       .delete()
     db.commit()
     return watchlist
+
+def get_watchlist_counts(db: Session):
+    watchlist_counts = db.query(
+        model_watchlist.Watchlist.userID,
+        func.count(model_watchlist.Watchlist.stockID).label('count')
+    ).group_by(
+        model_watchlist.Watchlist.userID
+    ).all()
+
+    return watchlist_counts
+'''
+This function will return a list of tuples, 
+where each tuple contains a user ID and the count of stocks in that user's watchlist.
+'''
+

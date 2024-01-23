@@ -4,6 +4,7 @@ from app.crud import crud_news
 from app.schemas import schema_news
 from app.db.database import get_db
 from typing import List
+from app.models import model_news, model_stock
 
 router = APIRouter(
     prefix="/news",
@@ -26,4 +27,12 @@ def read_user_news(stock_id: int, db: Session = Depends(get_db)):
 def add_news_by_stock_id(news_data: schema_news.NewsCreate, db: Session = Depends(get_db)):
     new_news_entry = crud_news.add_news_by_stock_id(db, news_data=news_data)
     return new_news_entry
+
+@router.get("/search/{prefix}", response_model=List[schema_news.News])
+def search_news_by_stock_symbol_prefix(prefix: str, db: Session = Depends(get_db)):
+    return crud_news.get_news_by_stock_symbol(db, prefix)
+
+@router.get("/search/{symbol}", response_model=List[schema_news.News])
+def search_news_by_stock_symbol(symbol: str, db: Session = Depends(get_db)):
+    return crud_news.get_news_by_stock_symbol(db, symbol)
 
