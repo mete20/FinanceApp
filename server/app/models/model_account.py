@@ -7,9 +7,9 @@ class Account(Base):
 
     accountID = Column(Integer, primary_key=True, index=True)
     userID = Column(Integer, ForeignKey('users.userID'))
-    balance = Column(Float)
-    balance_USD = Column(Float)
-    current_stock_value = Column(Float)
+    balance = Column(Float, default=0.0)
+    balance_USD = Column(Float, default=0.0)
+    current_stock_value = Column(Float, default=0.0)
 
     #relationships
     user = relationship("User", back_populates="account")

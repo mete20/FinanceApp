@@ -17,6 +17,11 @@ def read_accounts(user_id: int, db: Session = Depends(get_db)):
     accounts = crud_account.get_account(db, user_id=user_id)
     return accounts
 
+@router.get("/", response_model=List[schema_account.Account])
+def read_accounts(db: Session = Depends(get_db)):
+    accounts = crud_account.get_accounts(db)
+    return accounts
+
 ## TODO: Add a function to create a new account
 @router.post("/", response_model=schema_account.Account)
 def create_account(account_data: schema_account.AccountCreate, db: Session = Depends(get_db)):
@@ -30,3 +35,7 @@ def add_money_to_balance(user_id: int, amount: float, db: Session = Depends(get_
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
     return account
+
+@router.post("/create-account-for-each-user", response_model=str)
+def create_account_for_each_user(db: Session = Depends(get_db)):
+    return crud_account.create_account_for_each_user(db)
