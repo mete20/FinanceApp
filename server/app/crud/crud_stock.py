@@ -1,15 +1,17 @@
 from datetime import timedelta
 from sqlalchemy.orm import Session
-from app.models import model_stock
-from app.schemas import schema_stock
-from sqlalchemy import func
+
+from app.models import model_stock, model_stock_price_history
+from app.schemas import schema_stock, schema_stock_price_history
+from sqlalchemy import func, desc
 
 from app.models.model_stock import Stock
 from app.models.model_transaction import Transaction  
 from app.models.model_news import News  
 from app.models.model_portfolio import Portfolio  
 from sqlalchemy import and_  
-from app.models.model_watchlist import Watchlist  
+from app.models.model_watchlist import Watchlist 
+from datetime import datetime, timedelta
 
 def get_stocks(db: Session, skip: int = 0, limit: int = 200):
     return db.query(model_stock.Stock).offset(skip).limit(limit).all()
@@ -20,23 +22,6 @@ def create_stock(db: Session, stock: schema_stock.StockCreate):
     db.commit()
     db.refresh(db_stock)
     return db_stock
-
-def get_top_performing_stocks(db: Session, days_back: int = 30, top_n: int = 10):
-    """
-    Retrieves the top N performing stocks based on the percentage increase in price
-    over the past specified number of days.
-    """
-    current_date = func.now()
-    past_date = current_date - timedelta(days=days_back)
-
-    subquery = db.query(
-        model_stock.Stock.id,
-        ((model_stock.Stock.current_price - model_stock.Stock.historical_price) / model_stock.Stock.historical_price).label('performance')
-    ).filter(model_stock.Stock.date.between(past_date, current_date)).subquery()
-
-    return db.query(model_stock.Stock).join(
-        subquery, model_stock.Stock.id == subquery.c.id
-    ).order_by(subquery.c.performance.desc()).limit(top_n).all()
 
 def get_total_transaction_value_by_stock(db: Session):
     """
@@ -84,4 +69,48 @@ def get_stocks_with_highest_price(db: Session, limit: int = 10):
 
 def get_stocks_with_lowest_price(db: Session, limit: int = 10):
     return db.query(model_stock.Stock).order_by(model_stock.Stock.current_price.asc()).limit(limit).all()
+
+def get_top_performing_stocks(db: Session, days: int = 30, top_n: int = 10):
+
+
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=days)
+
+    # Subquery to get the earliest price in the specified time frame for each stock
+    earliest_prices = (
+        db.query(
+            StockPriceHistory.stockID,
+            func.min(StockPriceHistory.date).label('min_date')
+        )
+        .filter(StockPriceHistory.date >= start_date)
+        .group_by(StockPriceHistory.stockID)
+        .subquery()
+    )
+
+    # Subquery to get the latest price in the specified time frame for each stock
+    latest_prices = (
+        db.query(
+            StockPriceHistory.stockID,
+            func.max(StockPriceHistory.date).label('max_date')
+        )
+        .filter(StockPriceHistory.date <= end_date)
+        .group_by(StockPriceHistory.stockID)
+        .subquery()
+    )
+
+    # Main query to calculate the percentage increase for each stock
+    top_stocks_query = (
+        db.query(
+            model_stock.Stock,
+            ((StockPriceHistory.price / earliest_prices.c.price) - 1).label('percentage_increase')
+        )
+        .join(StockPriceHistory, model_stock.Stock.id == StockPriceHistory.stockID)
+        .join(earliest_prices, and_(model_stock.Stock.id == earliest_prices.c.stockID, StockPriceHistory.date == earliest_prices.c.min_date))
+        .join(latest_prices, and_(model_stock.Stock.id == latest_prices.c.stockID, StockPriceHistory.date == latest_prices.c.max_date))
+        .order_by(desc('percentage_increase'))
+        .limit(top_n)
+        .all()
+    )
+
+    return top_stocks_query
 
