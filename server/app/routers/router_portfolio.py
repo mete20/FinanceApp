@@ -30,3 +30,14 @@ def get_total_portfolio_value(user_id: int, db: Session = Depends(get_db)):
     total_value = crud_portfolio.get_total_portfolio_value(db, user_id=user_id)
     return total_value or 0.0
 
+@router.post("/sell_stock/", response_model=bool)
+def sell_stock_endpoint(portfolio_data: schema_portfolio.PortfolioCreate, db: Session = Depends(get_db)):
+    return crud_portfolio.sell_stock(db, portfolio_data=portfolio_data)
+
+@router.get("/cash_vs_invested/{user_id}", response_model=dict)
+def get_cash_vs_invested_value(user_id: int, db: Session = Depends(get_db)):
+    return crud_portfolio.get_cash_vs_invested(db, user_id=user_id)
+
+@router.get("/value_over_time/{user_id}", response_model=List)
+def get_portfolio_value_over_time(user_id: int, db: Session = Depends(get_db)):
+    return crud_portfolio.get_portfolio_value_over_time(db, user_id=user_id)

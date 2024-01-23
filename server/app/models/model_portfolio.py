@@ -15,7 +15,3 @@ class Portfolio(Base):
     stock = relationship("Stock", back_populates="portfolio_stock")
     user = relationship("User", back_populates="portfolio_user")
 
-    
-
-
-
