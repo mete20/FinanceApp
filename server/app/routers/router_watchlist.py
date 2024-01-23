@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.crud import crud_watchlist
 from app.schemas import schema_watchlist, schema_news
 from app.db.database import get_db
-from typing import List
+from typing import List, Tuple
 
 from app.models import model_news, model_stock, model_watchlist
 from sqlalchemy import func
@@ -28,14 +28,9 @@ def create_watchlist(watchlist_data: schema_watchlist.WatchlistCreate, db: Sessi
     else:
         raise HTTPException(status_code=400, detail="Stock already in watchlist")
 
-@router.get("/counts", response_model=List[tuple])
-def get_watchlist_counts(db: Session = Depends(get_db)):
-    watchlist_counts = db.query(
-        model_watchlist.Watchlist.userID,
-        func.count(model_watchlist.Watchlist.stockID).label('count')
-    ).group_by(
-        model_watchlist.Watchlist.userID
-    ).all()
+@router.get("/counts/{user_id}", response_model= int)
+def get_watchlist_counts(user_id: int, db: Session = Depends(get_db)):
+    counts = crud_watchlist.get_watchlist_counts(db, userID=user_id)
+    return counts
 
-    return watchlist_counts
 

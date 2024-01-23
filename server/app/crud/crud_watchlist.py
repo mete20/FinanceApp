@@ -4,6 +4,11 @@ from app.schemas import schema_watchlist
 
 from sqlalchemy import func
 from app.models import model_stock
+from sqlalchemy.orm import Session
+from app.models import model_watchlist, model_stock
+from app.schemas import schema_watchlist
+from sqlalchemy import func
+from app.models import model_stock
 
 
 
@@ -51,17 +56,10 @@ def remove_stock_from_watchlist(db: Session, user_id: int, stock_id: int):
     db.commit()
     return watchlist
 
-def get_watchlist_counts(db: Session):
-    watchlist_counts = db.query(
-        model_watchlist.Watchlist.userID,
-        func.count(model_watchlist.Watchlist.stockID).label('count')
-    ).group_by(
-        model_watchlist.Watchlist.userID
-    ).all()
+def get_watchlist_counts(db: Session, userID: int) -> int:
+    count = db.query(func.count(model_watchlist.Watchlist.stockID))\
+                .filter(model_watchlist.Watchlist.userID == userID)\
+                .scalar()
+    return int(count)
 
-    return watchlist_counts
-'''
-This function will return a list of tuples, 
-where each tuple contains a user ID and the count of stocks in that user's watchlist.
-'''
 

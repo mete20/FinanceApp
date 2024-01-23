@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from app.models import model_user
+from app.models import model_user, model_transaction
 from app.schemas import schema_user, schema_account
 from app.crud import crud_account, crud_watchlist, crud_portfolio
+from sqlalchemy import func
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(model_user.User).offset(skip).limit(limit).all()
