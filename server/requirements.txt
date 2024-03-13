@@ -4,3 +4,7 @@ sqlalchemy
 pydantic
 mysqlclient
 alembic
+faker
+requests
+yfinance
+pandas
