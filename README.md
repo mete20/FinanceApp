@@ -1,3 +1,4 @@
+# Finance App
 * Developed a web app allowing users to manage and track their financial status including transactions, portfolio, stock market, stock news, and watchlist.
 * Used Yahoo Finance API to get current stock values.
 * Produced Advanced SQL queries with SQLAlchemy.
